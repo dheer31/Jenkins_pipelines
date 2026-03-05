@@ -1,0 +1,54 @@
+//writing post block inside stage block
+
+/* pipeline{
+    agent any
+    stages{
+        stage('Print Devops'){
+            steps{
+                echo "Hello Devops"
+            }
+            post{
+                always{
+                    echo "it will execute always in the devops stage"
+                }
+                success{
+                    echo "build is success in devops stage"
+                }
+                failure{
+                    echo "build is failure in devops stage"
+                }
+            }
+        }
+    }
+}
+
+---------------------------------------------------------------------------------------------
+//Multiple stage block inside stages block
+
+pipeline{
+    agent any
+    stages{
+        stage('clean'){
+            steps{
+                echo "mvn clean"
+            }
+        }
+        stage('validate'){
+            steps{
+                echo "mvn validate"
+            }
+        }
+        stage('compile'){
+            steps{
+                echo "mvn compile"
+            }
+        }
+        stage('package'){
+            steps{
+                echo "mvn package"
+            }           
+        }
+    }
+}
+
+-----------------------------------------------------------------------------------------------
