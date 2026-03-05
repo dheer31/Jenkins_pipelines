@@ -1,0 +1,244 @@
+// Jenkins Pipeline Script to Print System and Build Information
+
+pipeline {
+
+    agent any
+
+    stages {
+        stage('Print Info') {
+            steps {
+                sh '''
+                pwd
+                uptime
+                whoami
+                hostname
+                echo $JOB_NAME
+                echo $BUILD_ID
+                '''
+            }
+        }
+    }
+}
+
+/*
+----------------------------------------------------------------
+Pipeline Example 2 – Script Block
+----------------------------------------------------------------
+
+pipeline {
+    agent any
+    stages {
+        stage("print with script block") {
+            steps {
+                echo "am executed from script block"
+                script {
+                    echo "am executed from script block"
+                }
+            }
+        }
+    }
+}
+
+----------------------------------------------------------------
+Pipeline Example 3 – Environment Variables
+----------------------------------------------------------------
+
+pipeline {
+    agent any
+
+    environment {
+        batch='CI/CD'
+        team='Devops'
+    }
+
+    stages {
+        stage("print the batch") {
+            steps {
+                echo "the batch name is: ${batch}"
+            }
+        }
+
+        stage("print the team name") {
+            steps {
+                echo "the team name is: ${team}"
+            }
+        }
+    }
+}
+
+----------------------------------------------------------------
+Pipeline Example 4 – Jenkins Environment Variables
+----------------------------------------------------------------
+
+pipeline {
+    agent any
+    stages {
+        stage("with environment") {
+            steps {
+                echo "jenkins job name is: ${env.JOB_NAME}"
+                echo "jenkins build id is: ${env.BUILD_ID}"
+            }
+        }
+    }
+}
+
+----------------------------------------------------------------
+Pipeline Example 5 – Post Block
+----------------------------------------------------------------
+
+pipeline {
+    agent any
+    stages {
+        stage("print Devops") {
+            steps {
+                echo "hello devops"
+            }
+        }
+    }
+    post {
+        always {
+            echo "it will execute always"
+        }
+        success {
+            echo "build is success"
+        }
+        failure {
+            echo "build is failure"
+        }
+    }
+}
+
+----------------------------------------------------------------
+Pipeline automate the deployment static into nginx container
+----------------------------------------------------------------
+
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_USERNAME = 'sakit333'
+        DOCKER_IMAGE = 'webapp'
+        DOCKERHUB_REPO = 'zepto-brocode'
+        VERSION = '$BUILD_ID'
+        CONTAINER_NAME = 'app'
+        CONTAINER_PORT = '8003'
+        REQUEST_PORT = '80'
+    }
+    stages {
+        stage("docker version") {
+            steps {
+                sh "sudo docker --version"
+            }
+        }
+        stage("Build Docker Image"){
+            steps {
+                sh "sudo docker build -t ${DOCKER_IMAGE} ."
+            }
+        }
+        stage("Docker tag") {
+            steps {
+                sh """
+                sudo docker tag ${DOCKER_IMAGE} ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:${VERSION}
+                sudo docker tag ${DOCKER_IMAGE} ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:latest
+                """
+            }
+        }
+        stage("Docker Images"){
+            steps {
+                sh "sudo docker images"
+            }
+        }
+        stage("Remove Older Container") {
+            steps {
+                sh "sudo docker rm -f ${CONTAINER_NAME}"
+            }
+            post {
+                success {
+                    echo "Container is removed"
+                }
+                failure {
+                    echo "Container is not Present...."
+                    sh "sudo docker run -it -d --name ${CONTAINER_NAME} -p ${CONTAINER_PORT}:${REQUEST_PORT} ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:latest"
+                }
+            }
+        }
+        stage("Run Container"){
+            steps{
+                sh "sudo docker run -it -d --name ${CONTAINER_NAME} -p ${CONTAINER_PORT}:${REQUEST_PORT} ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:latest"
+            }
+            post {
+                always {
+                    echo "Docker container from Server"
+                }
+                success {
+                    echo "Docker continer deployed successfully"
+                }
+                failure {
+                    echo "Docker container is alreay Running"
+                }
+            }
+        }
+        stage("Remove docker image locally") {
+            steps {
+                sh "sudo docker rmi -f ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:${VERSION}"
+            }
+        }
+    }
+}
+
+*/
+
+//writing post block inside stage block
+
+/* pipeline{
+    agent any
+    stages{
+        stage('Print Devops'){
+            steps{
+                echo "Hello Devops"
+            }
+            post{
+                always{
+                    echo "it will execute always in the devops stage"
+                }
+                success{
+                    echo "build is success in devops stage"
+                }
+                failure{
+                    echo "build is failure in devops stage"
+                }
+            }
+        }
+    }
+}
+
+---------------------------------------------------------------------------------------------
+//Multiple stage block inside stages block
+
+pipeline{
+    agent any
+    stages{
+        stage('clean'){
+            steps{
+                echo "mvn clean"
+            }
+        }
+        stage('validate'){
+            steps{
+                echo "mvn validate"
+            }
+        }
+        stage('compile'){
+            steps{
+                echo "mvn compile"
+            }
+        }
+        stage('package'){
+            steps{
+                echo "mvn package"
+            }           
+        }
+    }
+}
+
+-----------------------------------------------------------------------------------------------
